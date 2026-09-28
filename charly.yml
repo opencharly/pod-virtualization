@@ -1,7 +1,5 @@
-version: 2026.232.0520
 virtualization:
     candy:
-        version: 2026.182.2007
         description: |
             QEMU/KVM/libvirt virtualization stack for both supervisord and systemd init systems
             Installs the QEMU/KVM emulators, qemu-img, and the libvirt daemons.
