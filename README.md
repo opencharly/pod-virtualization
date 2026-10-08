@@ -33,7 +33,7 @@ with only `/dev/kvm` passthrough — no `CAP_SYS_ADMIN`, no root escalation.
 Typically pulled in via the `charly` toolchain candy:
 
 ```yaml
-openclaw-desktop:
+charly-arch:
   candy:
     - ...
     - charly                # the full toolchain — pulls virtualization
