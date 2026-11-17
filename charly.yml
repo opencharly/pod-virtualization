@@ -1,5 +1,33 @@
+libvirt-group:
+    candy:
+        description: |
+            Ensure the `libvirt` GROUP exists before any libvirt package is configured.
+            On Ubuntu 26.04 (resolute), libvirt-daemon-system's maintainer script adds the
+            libvirt-qemu user to the `libvirt` group BEFORE it creates that group, so dpkg
+            writes `fatal: The group \`libvirt' does not exist.` into the package log. The
+            group exists moments later and the install succeeds, but charly's deploy log
+            gate rightly refuses to ignore a `fatal:` line, so a 26.04 VM bed cannot pass.
+            Measured, both directions: with the group pre-created the same install emits
+            ZERO such lines; reordering the packages does not help (the message simply
+            moves to whichever transaction configures libvirt-daemon-system).
+            This candy exists to be `require:`-ordered AHEAD of `virtualization`, because
+            charly emits a candy's declarative distro: packages before its plan: steps - a
+            plan step inside virtualization would run too late. Idempotent and harmless on
+            Fedora/Arch, where the group already exists or the check simply passes.
+            opencharly/distro-ubuntu#66.
+        plan:
+            - run: ensure the libvirt group exists
+              command: |
+                getent group libvirt >/dev/null 2>&1 || groupadd -r libvirt
+              run_as: root
+              comment: idempotent; the group is what libvirt-daemon-system's postinst expects
+            - check: the libvirt group exists, which is what libvirt-daemon-system's postinst expects
+              command: getent group libvirt
+
 virtualization:
     candy:
+        require:
+            - libvirt-group
         description: |
             QEMU/KVM/libvirt virtualization stack for both supervisord and systemd init systems
             Installs the QEMU/KVM emulators, qemu-img, and the libvirt daemons.
